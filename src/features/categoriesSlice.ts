@@ -1,4 +1,3 @@
-import { Token } from './categoriesSlice';
 import { PayloadAction, createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 export interface Category {
