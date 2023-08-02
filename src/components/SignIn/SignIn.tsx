@@ -1,18 +1,17 @@
-import { ChangeEvent, FC, useState } from "react";
+import { ChangeEvent, FC, FormEvent, useState } from "react";
 import styles from "./signin.module.scss"
-import { useDispatch } from "react-redux";
 import { authSignIn } from "../../features/applicationSlice";
-import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { RootState } from "../../app/store";
 import eye from '../../assets/icons/eye.png'
+import { useAppDispatch, useAppSelector } from "../../app/hook";
 
 const SignIn: FC = () => {
     const [login, setLogin] = useState('')
     const [password, setPassword] = useState('')
-const loading = useSelector((state:RootState) => state.applicationSlice.loading)
-    const error = useSelector((state: RootState) => state.applicationSlice.error);
-    const dispatch = useDispatch()
+    const loading = useAppSelector((state: RootState) => state.applicationSlice.loading)
+    const error = useAppSelector((state: RootState) => state.applicationSlice.error);
+    const dispatch = useAppDispatch()
     const handleSetPass = (e: ChangeEvent<HTMLInputElement>) => {
         setPassword(e.target.value)
     }
@@ -21,7 +20,7 @@ const loading = useSelector((state:RootState) => state.applicationSlice.loading)
     }
     const navigate = useNavigate()
 
-    const handleSignIn = (e: ChangeEvent<HTMLInputElement>) => {
+    const handleSignIn = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         dispatch(authSignIn({ login, password }))
         navigate('/')
@@ -30,14 +29,10 @@ const loading = useSelector((state:RootState) => state.applicationSlice.loading)
     if (error) {
         return <div>{error}</div>
     }
-    console.log(loading);
-    
-    
-      if (loading) {
-        console.log(loading);
-        
-        return  <div> ...</div>
-      }
+
+    if (loading) {
+        return <div> ...</div>
+    }
     return (
         <div className={styles.signIn}>
             <h1>
@@ -68,7 +63,6 @@ const loading = useSelector((state:RootState) => state.applicationSlice.loading)
                 </form>
             </div>
         </div>
-
     );
 };
 

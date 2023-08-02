@@ -19,7 +19,6 @@ const Profile = () => {
             <h1>users</h1>
             {users.map(item => {
                 if (item._id === userId) {
-                    console.log(item)
                     return <div>{item?.name}</div>
                 }
             })}

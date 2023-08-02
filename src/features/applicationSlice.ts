@@ -1,6 +1,6 @@
 import { PayloadAction, createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
-export function parseJwt(token:string) {
+export function parseJwt(token: string): any | null {
   if (token) {
     const base64Url = token.split(".")[1];
     const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
@@ -18,6 +18,7 @@ export function parseJwt(token:string) {
   return null;
 }
 
+
 interface Users {
   login: string;
   password: string;
@@ -33,6 +34,8 @@ interface UsersState {
   token: string | null;
   userId: string | null;
   loading:boolean;
+  authSignUp: boolean;
+  authSignIn: boolean;
 }
 
 const initialState: UsersState = {
@@ -41,18 +44,21 @@ const initialState: UsersState = {
   signIn: false,
   signUp: false,
   token: localStorage.getItem("token"),
-  userId: localStorage.getItem("token")
-    ? parseJwt(localStorage.getItem("token"))?.id
-    : null,
+  userId: localStorage.getItem("token") !== null
+  ? parseJwt(localStorage.getItem("token") as string)?.id
+  : null,
     loading:false,
+    authSignUp: false,
+    authSignIn: false
 };
 
 
 
 
 export const authSignUp = createAsyncThunk<
-Users[],
-{ login: string; password: string }
+{error: string, Users: Users}, // Return type of the async action
+{ login: string; password: string; error: string } // Type of the payload
+
 >(
   "auth/signup",
   async ({ login, password }, thunkAPI) => {
@@ -64,7 +70,7 @@ Users[],
         },
         body: JSON.stringify({ login, password }),
       });
-      const json = await res.json();
+      const json: {error: string, Users: Users} = await res.json();
 
       if (json.error) {
         return thunkAPI.rejectWithValue(json.error);
@@ -76,9 +82,15 @@ Users[],
   }
 );
 
+interface ServerResponse {
+  error?: string;
+}
+
+
+
 export const authSignIn = createAsyncThunk<
-{ token: string; userId: string | null },
-{ login: string; password: string }
+  { token: string },
+  { login: string; password: string }
 >(
   "auth/signin",
   async ({ login, password }, thunkAPI) => {
@@ -90,20 +102,21 @@ export const authSignIn = createAsyncThunk<
         },
         body: JSON.stringify({ login, password }),
       });
-      const token = await res.json() as string;
-
-      if (token.error) {
-        return thunkAPI.rejectWithValue(token.error);
+      const json: {token: string, error: string} = await res.json();
+      
+      if (json.error) {
+        return thunkAPI.rejectWithValue(json.error);
       }
-      localStorage.setItem("token", token);
-      const decodedToken = parseJwt(token);
-      const userId = decodedToken ? decodedToken.id : null;
-      return { token, userId };
+
+      localStorage.setItem("token", json.token);
+      return { token: json.token };
     } catch (error) {
+      // Обрабатываем ошибку с помощью rejectWithValue
       return thunkAPI.rejectWithValue(error);
     }
   }
 );
+
 
 const applicationSlice = createSlice({
   name: "application",
@@ -111,14 +124,16 @@ const applicationSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(authSignUp.pending, (state) => {
+      .addCase(authSignUp.pending, (state: UsersState) => {
         state.authSignUp = false;
         state.error = null;
         state.loading = true
       })
       .addCase(authSignUp.rejected, (state, action) => {
+        const { payload } = action as PayloadAction<string | null>;
+
         state.authSignUp = false;
-        state.error = action.payload;
+        state.error = payload;
         state.loading = false
       })
       .addCase(authSignUp.fulfilled, (state:UsersState) => {
@@ -132,17 +147,17 @@ const applicationSlice = createSlice({
         state.loading = true
       })
       .addCase(authSignIn.rejected, (state, action) => {
+        const { payload } = action as PayloadAction<string | null>;
+
         state.authSignIn = false;
-        state.error = action.payload;
+        state.error = payload;
         state.loading = false
       })
-      .addCase(authSignIn.fulfilled, (state, action: PayloadAction<{ token: string; userId: string | null }>) => {
+      .addCase(authSignIn.fulfilled, (state, action: PayloadAction<{ token: string }>) => {
         state.authSignIn = true;
         state.error = null;
         state.token = action.payload.token;
-        state.userId = action.payload.userId;
         state.loading = false
-        console.log(action.userId);
         
       });
   },

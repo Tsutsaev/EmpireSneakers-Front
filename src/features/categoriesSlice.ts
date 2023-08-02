@@ -53,7 +53,6 @@ const categoriesSlice = createSlice({
         fetchCategories.fulfilled,
         (state: CategoryState, action: PayloadAction<Category[]>) => {
           state.categories = action.payload;
-          console.log(state.categories);
           
         }
       )

@@ -1,23 +1,23 @@
-import { ChangeEvent, FC, useState } from 'react';
+import { ChangeEvent, FC, FormEvent, useState } from 'react';
 import styles from "./signup.module.scss"
-import { useDispatch } from 'react-redux';
 import { authSignUp } from '../../features/applicationSlice';
 import { useNavigate } from 'react-router-dom';
 import eye from '../../assets/icons/eye.png'
+import { useAppDispatch } from '../../app/hook';
 
 const SignUp: FC = () => {
     const [login, setLogin] = useState('')
     const [password, setPassword] = useState('')
 
-    const dispatch = useDispatch()
-    const handleSetName = (e:ChangeEvent<HTMLInputElement>) => {
+    const dispatch = useAppDispatch()
+    const handleSetName = (e: ChangeEvent<HTMLInputElement>) => {
         setLogin(e.target.value)
     }
-    const handleSetPass = (e:ChangeEvent<HTMLInputElement>) => {
+    const handleSetPass = (e: ChangeEvent<HTMLInputElement>) => {
         setPassword(e.target.value)
     }
     const navigate = useNavigate()
-    const handleSignUp = (e:ChangeEvent<HTMLInputElement>) => {
+    const handleSignUp = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         dispatch(authSignUp({ login, password }))
         navigate("/authorization/signIn")
